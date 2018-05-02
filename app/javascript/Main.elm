@@ -1,6 +1,7 @@
 module Main exposing (..)
 
-import Html exposing (Html, text, li,  ul)
+import Html exposing (Html, div, input, li, text, ul)
+import Html.Events exposing (onInput)
 
 
 -- MODEL
@@ -17,7 +18,7 @@ type alias Todo =
 
 testList : Model
 testList =
-    { todos = [ { title = "Thank Kyle for meeting with me." }, { title = "Send Paul Izra's contact information."} ] }
+    { todos = [ { title = "Thank Kyle for meeting with me." }, { title = "Send Paul Izra's contact information." } ] }
 
 
 init : ( Model, Cmd Message )
@@ -31,7 +32,10 @@ init =
 
 view : Model -> Html Message
 view model =
-    ul [] <|  List.map (\x -> li [] [text x.title]) model.todos
+    div []
+        [ ul [] <| List.map (\x -> li [] [ text x.title ]) model.todos
+        , input [ onInput NewTodo ] []
+        ]
 
 
 
@@ -39,7 +43,7 @@ view model =
 
 
 type Message
-    = None
+    = NewTodo String
 
 
 
@@ -47,8 +51,14 @@ type Message
 
 
 update : Message -> Model -> ( Model, Cmd Message )
-update message model =
-    ( model, Cmd.none )
+update msg model =
+    case msg of
+        NewTodo todoText ->
+            let
+                new =
+                    { title = todoText }
+            in
+            ( { model | todos = new :: model.todos }, Cmd.none )
 
 
 
