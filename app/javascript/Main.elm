@@ -1,54 +1,74 @@
 module Main exposing (..)
 
-import Html exposing (Html, h1, text)
-import Html.Attributes exposing (style)
+import Html exposing (Html, text, li,  ul)
+
 
 -- MODEL
 
+
 type alias Model =
-  {
-  }
+    { todos : List Todo }
 
--- INIT
 
-init : (Model, Cmd Message)
+type alias Todo =
+    { title : String
+    }
+
+
+testList : Model
+testList =
+    { todos = [ { title = "Thank Kyle for meeting with me." }, { title = "Send Paul Izra's contact information."} ] }
+
+
+init : ( Model, Cmd Message )
 init =
-  (Model, Cmd.none)
+    ( testList, Cmd.none )
+
+
 
 -- VIEW
 
+
 view : Model -> Html Message
 view model =
-  -- The inline style is being used for example purposes in order to keep this example simple and
-  -- avoid loading additional resources. Use a proper stylesheet when building your own app.
-  h1 [style [("display", "flex"), ("justify-content", "center")]]
-     [text "Hello Elm!"]
+    ul [] <|  List.map (\x -> li [] [text x.title]) model.todos
+
+
 
 -- MESSAGE
 
+
 type Message
-  = None
+    = None
+
+
 
 -- UPDATE
 
-update : Message -> Model -> (Model, Cmd Message)
+
+update : Message -> Model -> ( Model, Cmd Message )
 update message model =
-  (model, Cmd.none)
+    ( model, Cmd.none )
+
+
 
 -- SUBSCRIPTIONS
 
+
 subscriptions : Model -> Sub Message
 subscriptions model =
-  Sub.none
+    Sub.none
+
+
 
 -- MAIN
 
+
 main : Program Never Model Message
 main =
-  Html.program
-    {
-      init = init,
-      view = view,
-      update = update,
-      subscriptions = subscriptions
-    }
+    Html.program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }

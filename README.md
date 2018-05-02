@@ -6,4 +6,4 @@ A todo list that helps you work on one thing at a time.
 
 ## Todos
 - [X] Hello world Elm with Rails
-- 
+- [ ] Switch to postrgesql
