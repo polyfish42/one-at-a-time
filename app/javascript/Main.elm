@@ -1,24 +1,33 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, input, li, text, ul)
-import Html.Events exposing (onInput)
+import Html exposing (Html, button, div, form, input, li, text, ul)
+import Html.Attributes exposing (value)
+import Html.Events exposing (onInput, onSubmit)
+import Html.Keyed as Keyed
 
 
 -- MODEL
 
 
 type alias Model =
-    { todos : List Todo }
+    { todos : List Todo
+    , newTodo : String
+    , uid : Int
+    }
 
 
 type alias Todo =
     { title : String
+    , id : Int
     }
 
 
 testList : Model
 testList =
-    { todos = [ { title = "Thank Kyle for meeting with me." }, { title = "Send Paul Izra's contact information." } ] }
+    { todos = [ { title = "Thank Kyle for meeting with me.", id = 1 }, { title = "Send Paul Izra's contact information.", id = 2 } ]
+    , newTodo = ""
+    , uid = 3
+    }
 
 
 init : ( Model, Cmd Message )
@@ -33,9 +42,22 @@ init =
 view : Model -> Html Message
 view model =
     div []
-        [ ul [] <| List.map (\x -> li [] [ text x.title ]) model.todos
-        , input [ onInput NewTodo ] []
+        [ Keyed.ul [] <| List.map (\t -> viewKeyedTodo t) model.todos
+        , Html.form [ onSubmit SubmitForm ]
+            [ input [ onInput SetNewTodo, value model.newTodo ] []
+            , button [] [ text "New Todo" ]
+            ]
         ]
+
+
+viewKeyedTodo : Todo -> ( String, Html msg )
+viewKeyedTodo todo =
+    ( toString todo.id, viewTodo todo )
+
+
+viewTodo : Todo -> Html msg
+viewTodo todo =
+    li [] [ text todo.title ]
 
 
 
@@ -43,7 +65,8 @@ view model =
 
 
 type Message
-    = NewTodo String
+    = SetNewTodo String
+    | SubmitForm
 
 
 
@@ -53,12 +76,15 @@ type Message
 update : Message -> Model -> ( Model, Cmd Message )
 update msg model =
     case msg of
-        NewTodo todoText ->
+        SetNewTodo todoText ->
+            ( { model | newTodo = todoText }, Cmd.none )
+
+        SubmitForm ->
             let
-                new =
-                    { title = todoText }
+                todo =
+                    { title = model.newTodo, id = model.uid }
             in
-            ( { model | todos = new :: model.todos }, Cmd.none )
+            ( { model | todos = todo :: model.todos, newTodo = "", uid = model.uid + 1 }, Cmd.none )
 
 
 
