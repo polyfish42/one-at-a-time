@@ -19,12 +19,20 @@ type alias Model =
 type alias Todo =
     { title : String
     , id : Int
+    , tag : TodoTag
     }
+
+
+type TodoTag
+    = Completed
+    | Added
+    | Removed
+    | None
 
 
 testList : Model
 testList =
-    { todos = [ { title = "Thank Kyle for meeting with me.", id = 1 }, { title = "Send Paul Izra's contact information.", id = 2 } ]
+    { todos = [ { title = "Thank Kyle for meeting with me.", id = 1, tag = None }, { title = "Send Paul Izra's contact information.", id = 2, tag = None } ]
     , newTodo = ""
     , uid = 3
     }
@@ -41,8 +49,21 @@ init =
 
 view : Model -> Html Message
 view model =
+    let
+        completed =
+            List.filter (\t -> t.tag == Completed) model.todos
+
+        added =
+            List.filter (\t -> t.tag == Added) model.todos
+
+        removed =
+            List.filter (\t -> t.tag == Removed) model.todos
+
+        none =
+            List.filter (\t -> t.tag == None) model.todos
+    in
     div []
-        [ Keyed.ul [] <| List.map (\t -> viewKeyedTodo t) model.todos
+        [ Keyed.ul [] <| List.map (\t -> viewKeyedTodo t) none
         , Html.form [ onSubmit SubmitForm ]
             [ input [ onInput SetNewTodo, value model.newTodo ] []
             , button [] [ text "New Todo" ]
@@ -82,7 +103,7 @@ update msg model =
         SubmitForm ->
             let
                 todo =
-                    { title = model.newTodo, id = model.uid }
+                    { title = model.newTodo, id = model.uid, tag = Added }
             in
             ( { model | todos = todo :: model.todos, newTodo = "", uid = model.uid + 1 }, Cmd.none )
 
