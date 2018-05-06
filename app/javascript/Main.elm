@@ -1,8 +1,8 @@
 module Main exposing (..)
 
 import Html exposing (Html, button, div, form, h2, input, li, text, ul)
-import Html.Attributes exposing (value)
-import Html.Events exposing (onInput, onClick, onSubmit)
+import Html.Attributes exposing (class, value)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import Html.Keyed as Keyed
 
 
@@ -32,9 +32,21 @@ type TodoTag
 
 testList : Model
 testList =
-    { todos = [ { title = "Thank Kyle for meeting with me.", id = 1, tag = None }, { title = "Send Paul Izra's contact information.", id = 2, tag = None } ]
+    { todos =
+        [ { title = "Thank Kyle for meeting with me.", id = 1, tag = None }
+        , { title = "Send Paul Izra's contact information.", id = 2, tag = None }
+        , { title = "Figure out how to switch types easily", id = 3, tag = None }
+        , { title = "Should this be one big text box or more graphically structured?", id = 4, tag = Added }
+        , { title = "I definitely need no latency in typing.", id = 4, tag = Added }
+        , { title = "How can I accomplish that?", id = 5, tag = Completed }
+        , { title = "Watch TV", id = 6, tag = Completed }
+        , { title = "Ben's graduation present", id = 7, tag = Removed }
+        , { title = "Get $40 from the ATM", id = 8, tag = Removed }
+        , { title = "Watch Westworld", id = 9, tag = None }
+        , { title = "Read some expanse", id = 10, tag = None }
+        ]
     , newTodo = ""
-    , uid = 3
+    , uid = 10
     }
 
 
@@ -66,13 +78,9 @@ view model =
             todoFilter None
     in
     div []
-        [ h2 [] [ text "Completed" ]
-        , viewTodoList completed
-        , h2 [] [ text "Added" ]
+        [ viewTodoList completed
         , viewTodoList added
-        , h2 [] [ text "Removed" ]
         , viewTodoList removed
-        , h2 [] [ text "None" ]
         , viewTodoList none
         , Html.form [ onSubmit SubmitForm ]
             [ input [ onInput SetNewTodo, value model.newTodo ] []
@@ -83,7 +91,7 @@ view model =
 
 viewTodoList : List Todo -> Html Message
 viewTodoList todos =
-    Keyed.ul [] <| List.map (\t -> viewKeyedTodo t) todos
+    Keyed.ul [ class "todo-list" ] <| List.map (\t -> viewKeyedTodo t) todos
 
 
 viewKeyedTodo : Todo -> ( String, Html Message )
@@ -93,7 +101,23 @@ viewKeyedTodo todo =
 
 viewTodo : Todo -> Html Message
 viewTodo todo =
-    li [onClick <| Toggle todo.id] [ text todo.title ]
+    li [ onClick <| Toggle todo.id ] [ text <| viewTag todo, text todo.title ]
+
+
+viewTag : Todo -> String
+viewTag todo =
+    case todo.tag of
+        Completed ->
+            "C "
+
+        Added ->
+            "+ "
+
+        Removed ->
+            "- "
+
+        None ->
+            "  "
 
 
 
@@ -104,6 +128,7 @@ type Message
     = SetNewTodo String
     | SubmitForm
     | Toggle Int
+
 
 
 -- UPDATE
@@ -128,18 +153,21 @@ update msg model =
                     if t.id == todoId then
                         case t.tag of
                             Completed ->
-                                {t | tag = None}
+                                { t | tag = Added }
+
                             Added ->
-                                {t | tag = Removed}
+                                { t | tag = Removed }
+
                             Removed ->
-                                {t | tag = None}
+                                { t | tag = None }
+
                             None ->
-                                {t | tag = Completed}
+                                { t | tag = Completed }
                     else
                         t
             in
-                { model | todos = List.map toggleTodo model.todos} ! []
-    
+            { model | todos = List.map toggleTodo model.todos } ! []
+
 
 
 -- SUBSCRIPTIONS
