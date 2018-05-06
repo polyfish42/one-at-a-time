@@ -1,8 +1,8 @@
 module Main exposing (..)
 
-import Html exposing (Html, button, div, form, input, li, text, ul)
+import Html exposing (Html, button, div, form, h2, input, li, text, ul)
 import Html.Attributes exposing (value)
-import Html.Events exposing (onInput, onSubmit)
+import Html.Events exposing (onInput, onClick, onSubmit)
 import Html.Keyed as Keyed
 
 
@@ -50,20 +50,30 @@ init =
 view : Model -> Html Message
 view model =
     let
+        todoFilter tag =
+            List.filter (\t -> t.tag == tag) model.todos
+
         completed =
-            List.filter (\t -> t.tag == Completed) model.todos
+            todoFilter Completed
 
         added =
-            List.filter (\t -> t.tag == Added) model.todos
+            todoFilter Added
 
         removed =
-            List.filter (\t -> t.tag == Removed) model.todos
+            todoFilter Removed
 
         none =
-            List.filter (\t -> t.tag == None) model.todos
+            todoFilter None
     in
     div []
-        [ Keyed.ul [] <| List.map (\t -> viewKeyedTodo t) none
+        [ h2 [] [ text "Completed" ]
+        , viewTodoList completed
+        , h2 [] [ text "Added" ]
+        , viewTodoList added
+        , h2 [] [ text "Removed" ]
+        , viewTodoList removed
+        , h2 [] [ text "None" ]
+        , viewTodoList none
         , Html.form [ onSubmit SubmitForm ]
             [ input [ onInput SetNewTodo, value model.newTodo ] []
             , button [] [ text "New Todo" ]
@@ -71,14 +81,19 @@ view model =
         ]
 
 
-viewKeyedTodo : Todo -> ( String, Html msg )
+viewTodoList : List Todo -> Html Message
+viewTodoList todos =
+    Keyed.ul [] <| List.map (\t -> viewKeyedTodo t) todos
+
+
+viewKeyedTodo : Todo -> ( String, Html Message )
 viewKeyedTodo todo =
     ( toString todo.id, viewTodo todo )
 
 
-viewTodo : Todo -> Html msg
+viewTodo : Todo -> Html Message
 viewTodo todo =
-    li [] [ text todo.title ]
+    li [onClick <| Toggle todo.id] [ text todo.title ]
 
 
 
@@ -88,7 +103,7 @@ viewTodo todo =
 type Message
     = SetNewTodo String
     | SubmitForm
-
+    | Toggle Int
 
 
 -- UPDATE
@@ -107,6 +122,24 @@ update msg model =
             in
             ( { model | todos = todo :: model.todos, newTodo = "", uid = model.uid + 1 }, Cmd.none )
 
+        Toggle todoId ->
+            let
+                toggleTodo t =
+                    if t.id == todoId then
+                        case t.tag of
+                            Completed ->
+                                {t | tag = None}
+                            Added ->
+                                {t | tag = Removed}
+                            Removed ->
+                                {t | tag = None}
+                            None ->
+                                {t | tag = Completed}
+                    else
+                        t
+            in
+                { model | todos = List.map toggleTodo model.todos} ! []
+    
 
 
 -- SUBSCRIPTIONS
