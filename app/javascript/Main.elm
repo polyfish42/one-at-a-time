@@ -68,21 +68,18 @@ view model =
         completed =
             todoFilter Completed
 
-        added =
-            todoFilter Added
+        none =
+            todoFilter None ++ todoFilter Added
 
         removed =
             todoFilter Removed
 
-        none =
-            todoFilter None
     in
     div []
         [ h2 [] [ text "Jake's plan for May 6th, 2018" ]
         , viewTodoList completed
-        , viewTodoList added
-        , viewTodoList removed
         , viewTodoList none
+        , viewTodoList removed
         , Html.form [ onSubmit SubmitForm ]
             [ input [ onInput SetNewTodo, value model.newTodo ] []
             , button [] [ text "New Todo" ]
@@ -102,7 +99,7 @@ viewKeyedTodo todo =
 
 viewTodo : Todo -> Html Message
 viewTodo todo =
-    li [ onClick <| Toggle todo.id ] [ text <| viewTag todo, text todo.title ]
+    li [] [ text <| viewTag todo, text todo.title ]
 
 
 viewTag : Todo -> String
@@ -128,7 +125,6 @@ viewTag todo =
 type Message
     = SetNewTodo String
     | SubmitForm
-    | Toggle Int
 
 
 
@@ -147,27 +143,6 @@ update msg model =
                     { title = model.newTodo, id = model.uid, tag = Added }
             in
             ( { model | todos = todo :: model.todos, newTodo = "", uid = model.uid + 1 }, Cmd.none )
-
-        Toggle todoId ->
-            let
-                toggleTodo t =
-                    if t.id == todoId then
-                        case t.tag of
-                            Completed ->
-                                { t | tag = Added }
-
-                            Added ->
-                                { t | tag = Removed }
-
-                            Removed ->
-                                { t | tag = None }
-
-                            None ->
-                                { t | tag = Completed }
-                    else
-                        t
-            in
-            ( { model | todos = List.map toggleTodo model.todos |> putTodoAtFront todoId }, Cmd.none )
 
 
 putTodoAtFront : Int -> List Todo -> List Todo
