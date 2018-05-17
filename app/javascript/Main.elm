@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (Html, button, div, form, h2, input, li, text, ul)
-import Html.Attributes exposing (class, value)
+import Html.Attributes exposing (checked, class, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Html.Keyed as Keyed
 
@@ -73,17 +73,16 @@ view model =
 
         removed =
             todoFilter Removed
-
     in
     div []
         [ h2 [] [ text "Jake's plan for May 6th, 2018" ]
         , viewTodoList completed
-        , viewTodoList none
-        , viewTodoList removed
         , Html.form [ onSubmit SubmitForm ]
             [ input [ onInput SetNewTodo, value model.newTodo ] []
             , button [] [ text "New Todo" ]
             ]
+        , viewTodoList none
+        , viewTodoList removed
         ]
 
 
@@ -99,23 +98,17 @@ viewKeyedTodo todo =
 
 viewTodo : Todo -> Html Message
 viewTodo todo =
-    li [] [ text <| viewTag todo, text todo.title ]
+    li [] [ input [ type_ "checkbox", todoChecked todo, onClick <| ToggleComplete todo.id ] [], text todo.title ]
 
 
-viewTag : Todo -> String
-viewTag todo =
+todoChecked : Todo -> Html.Attribute msg
+todoChecked todo =
     case todo.tag of
         Completed ->
-            "C "
+            checked True
 
-        Added ->
-            "+ "
-
-        Removed ->
-            "- "
-
-        None ->
-            "  "
+        _ ->
+            checked False
 
 
 
@@ -125,6 +118,7 @@ viewTag todo =
 type Message
     = SetNewTodo String
     | SubmitForm
+    | ToggleComplete Int
 
 
 
@@ -143,6 +137,20 @@ update msg model =
                     { title = model.newTodo, id = model.uid, tag = Added }
             in
             ( { model | todos = todo :: model.todos, newTodo = "", uid = model.uid + 1 }, Cmd.none )
+
+        ToggleComplete todoId ->
+            let
+                completeTodo todo =
+                    if todo.id == todoId then
+                        case todo.tag of
+                            Completed ->
+                                { todo | tag = None }
+                            _ ->
+                                { todo | tag = Completed}
+                    else
+                        todo
+            in
+            ({ model | todos = List.map completeTodo model.todos }, Cmd.none)
 
 
 putTodoAtFront : Int -> List Todo -> List Todo
