@@ -38,15 +38,15 @@ testList =
         , { title = "Figure out how to switch types easily", id = 3, tag = None }
         , { title = "Should this be one big text box or more graphically structured?", id = 4, tag = Added }
         , { title = "I definitely need no latency in typing.", id = 4, tag = Added }
-        , { title = "How can I accomplish that?", id = 5, tag = Completed }
+        , { title = "What happens when I want to switch the order?", id = 5, tag = Completed }
         , { title = "Watch TV", id = 6, tag = Completed }
         , { title = "Ben's graduation present", id = 7, tag = Removed }
         , { title = "Get $40 from the ATM", id = 8, tag = Removed }
-        , { title = "Watch Westworld", id = 9, tag = None }
-        , { title = "Read some expanse", id = 10, tag = None }
+        , { title = "How can we navigate between todos that get out of order?", id = 9, tag = None }
+        , { title = "Filter todos by date added", id = 10, tag = None }
         ]
     , newTodo = ""
-    , uid = 10
+    , uid = 11
     }
 
 
@@ -78,7 +78,8 @@ view model =
             todoFilter None
     in
     div []
-        [ viewTodoList completed
+        [ h2 [] [ text "Jake's plan for May 6th, 2018" ]
+        , viewTodoList completed
         , viewTodoList added
         , viewTodoList removed
         , viewTodoList none
@@ -166,7 +167,16 @@ update msg model =
                     else
                         t
             in
-            { model | todos = List.map toggleTodo model.todos } ! []
+            ( { model | todos = List.map toggleTodo model.todos |> putTodoAtFront todoId }, Cmd.none )
+
+
+putTodoAtFront : Int -> List Todo -> List Todo
+putTodoAtFront todoId todos =
+    let
+        ( todo, rest ) =
+            List.partition (\t -> t.id == todoId) todos
+    in
+    List.append todo rest
 
 
 
