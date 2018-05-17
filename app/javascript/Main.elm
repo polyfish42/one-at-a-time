@@ -20,12 +20,12 @@ type alias Todo =
     { title : String
     , id : Int
     , tag : TodoTag
+    , addedToday : Bool
     }
 
 
 type TodoTag
     = Completed
-    | Added
     | Removed
     | None
 
@@ -33,17 +33,16 @@ type TodoTag
 testList : Model
 testList =
     { todos =
-        [ { title = "Thank Kyle for meeting with me.", id = 1, tag = None }
-        , { title = "Send Paul Izra's contact information.", id = 2, tag = None }
-        , { title = "Figure out how to switch types easily", id = 3, tag = None }
-        , { title = "Should this be one big text box or more graphically structured?", id = 4, tag = Added }
-        , { title = "I definitely need no latency in typing.", id = 4, tag = Added }
-        , { title = "What happens when I want to switch the order?", id = 5, tag = Completed }
-        , { title = "Watch TV", id = 6, tag = Completed }
-        , { title = "Ben's graduation present", id = 7, tag = Removed }
-        , { title = "Get $40 from the ATM", id = 8, tag = Removed }
-        , { title = "How can we navigate between todos that get out of order?", id = 9, tag = None }
-        , { title = "Filter todos by date added", id = 10, tag = None }
+        [ { title = "Thank Kyle for meeting with me.", id = 1, tag = None, addedToday = True }
+        , { title = "Send Paul Izra's contact information.", id = 2, tag = None, addedToday = False }
+        , { title = "Figure out how to switch types easily", id = 3, tag = None, addedToday = False }
+        , { title = "Should this be one big text box or more graphically structured?", id = 4, tag = None, addedToday = True }
+        , { title = "What happens when I want to switch the order?", id = 5, tag = Completed, addedToday = False }
+        , { title = "Watch TV", id = 6, tag = Completed, addedToday = False }
+        , { title = "Ben's graduation present", id = 7, tag = Removed, addedToday = False }
+        , { title = "Get $40 from the ATM", id = 8, tag = Removed, addedToday = False }
+        , { title = "How can we navigate between todos that get out of order?", id = 9, tag = None, addedToday = False }
+        , { title = "Filter todos by date added", id = 10, tag = None, addedToday = False }
         ]
     , newTodo = ""
     , uid = 11
@@ -69,7 +68,7 @@ view model =
             todoFilter Completed
 
         none =
-            todoFilter None ++ todoFilter Added
+            todoFilter None
 
         removed =
             todoFilter Removed
@@ -98,8 +97,15 @@ viewKeyedTodo todo =
 
 viewTodo : Todo -> Html Message
 viewTodo todo =
-    li [] [ input [ type_ "checkbox", todoChecked todo, onClick <| ToggleComplete todo.id ] [], text todo.title ]
+    li [] [ text <| todoAddedTodayPlus todo, input [ type_ "checkbox", todoChecked todo, onClick <| ToggleComplete todo.id ] [], text todo.title ]
 
+
+todoAddedTodayPlus : Todo -> String
+todoAddedTodayPlus todo =
+    if todo.addedToday && todo.tag /= Completed then
+        "+"
+    else
+        " "
 
 todoChecked : Todo -> Html.Attribute msg
 todoChecked todo =
@@ -134,7 +140,7 @@ update msg model =
         SubmitForm ->
             let
                 todo =
-                    { title = model.newTodo, id = model.uid, tag = Added }
+                    { title = model.newTodo, id = model.uid, tag = None, addedToday = True }
             in
             ( { model | todos = todo :: model.todos, newTodo = "", uid = model.uid + 1 }, Cmd.none )
 
@@ -145,12 +151,13 @@ update msg model =
                         case todo.tag of
                             Completed ->
                                 { todo | tag = None }
+
                             _ ->
-                                { todo | tag = Completed}
+                                { todo | tag = Completed }
                     else
                         todo
             in
-            ({ model | todos = List.map completeTodo model.todos }, Cmd.none)
+            ( { model | todos = List.map completeTodo model.todos }, Cmd.none )
 
 
 putTodoAtFront : Int -> List Todo -> List Todo
